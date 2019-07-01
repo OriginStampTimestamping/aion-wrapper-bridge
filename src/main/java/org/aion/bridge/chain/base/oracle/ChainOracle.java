@@ -34,8 +34,6 @@ import org.aion.bridge.chain.base.api.QuorumNotAvailableException;
 import org.aion.bridge.chain.base.api.StatelessChainConnection;
 import org.aion.bridge.chain.base.types.*;
 import org.aion.bridge.chain.db.PersistenceServiceException;
-import org.aion.bridge.chain.log.LogEnum;
-import org.aion.bridge.chain.log.LoggingSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,12 +98,10 @@ public class ChainOracle<B extends Block, R extends Receipt<L>, L extends Log, A
         eventBus = new ChainOracleEventBus<>();
         blockNumberCollector = b.blockNumberCollector;
         if (b.log == null) {
-            log = LoggerFactory.getLogger(LogEnum.CHAIN_ORACLE.name());
+            log = LoggerFactory.getLogger(ChainOracle.class.getCanonicalName());
         } else {
             log = b.log;
         }
-
-        LoggingSetup.setupLogging();
     }
 
     private volatile boolean shutdown = false;
