@@ -34,9 +34,9 @@
             <version>27.0-jre</version>
         </dependency>
         <dependency>
-            <groupId>org.aion.network</groupId>
+            <groupId>com.github.OriginStampTimestamping</groupId>
             <artifactId>aion_api</artifactId>
-            <version>0.1.15</version>
+            <version>6806ecc9eb</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -69,6 +69,10 @@
         <repository>
             <id>jcenter</id>
             <url>https://jcenter.bintray.com/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 </project>
