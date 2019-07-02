@@ -1,0 +1,122 @@
+package org.aion.api.type;
+
+import org.aion.base.type.Hash256;
+import org.aion.base.util.ByteArrayWrapper;
+
+/**
+ * Represents the transaction status including the execution status and the API session hash.
+ *
+ * <pre>
+ * param preStatus
+ *      the transaction previous execute status.
+ * param status
+ *      the transaction execute status.
+ * param msgHash
+ *      it's for the internal Java API use to recognize this class is belong to which transaction API operation.
+ * param txHash
+ *      the class {@link Hash256 Hash256} represent to the 32bytes transaction ID
+ * param txResult
+ *      the class {@link ByteArrayWrapper ByteArrayWrapper} represent the transaction result.
+ * param txDeploy
+ *      the class {@link ByteArrayWrapper ByteArrayWrapper} represent the deploy result if it is a contract deploy.
+ *
+ * @see org.aion.api.ITx#sendTransaction(org.aion.api.type.TxArgs)
+ * @see org.aion.api.ITx#sendRawTransaction(org.aion.base.util.ByteArrayWrapper)
+ * @see org.aion.api.ITx#sendSignedTransaction(org.aion.api.type.TxArgs, org.aion.base.util.ByteArrayWrapper)
+ *
+ * </pre>
+ *
+ * @author Jay Tseng
+ */
+public class MsgRsp {
+
+    private byte preStatus;
+    private byte status;
+    private ByteArrayWrapper msgHash;
+    private Hash256 txHash;
+    private ByteArrayWrapper txResult;
+    private ByteArrayWrapper txDeploy;
+    private String error;
+
+    private MsgRsp() {
+    }
+
+    public MsgRsp(int rValue, ByteArrayWrapper hash) {
+        this.setPreStatus((byte) 106);
+        this.setStatus((byte) rValue);
+        this.setMsgHash(hash);
+        this.setTxHash(Hash256.ZERO_HASH());
+        this.setTxResult(ByteArrayWrapper.wrap(ByteArrayWrapper.NULL_BYTE));
+        this.setTxDeploy(ByteArrayWrapper.wrap(ByteArrayWrapper.NULL_BYTE));
+    }
+
+    public static MsgRsp copy(MsgRsp in) throws CloneNotSupportedException {
+        MsgRsp newMsg = new MsgRsp();
+        newMsg.setPreStatus(in.getPreStatus());
+        newMsg.setStatus(in.getStatus());
+        newMsg.setMsgHash(ByteArrayWrapper.wrap(in.getMsgHash().toBytes().clone()));
+        newMsg.setTxHash(in.getTxHash().clone());
+        newMsg.setTxResult(ByteArrayWrapper.wrap(in.getTxResult().toBytes().clone()));
+        newMsg.setTxDeploy(ByteArrayWrapper.wrap(in.getTxDeploy().toBytes().clone()));
+        if (in.getError() != null) {
+            newMsg.setError(in.getError());
+        }
+        return newMsg;
+    }
+
+    private byte getPreStatus() {
+        return preStatus;
+    }
+
+    public void setPreStatus(byte preStatus) {
+        this.preStatus = preStatus;
+    }
+
+    public byte getStatus() {
+        return status;
+    }
+
+    public void setStatus(byte status) {
+        this.status = status;
+    }
+
+    public ByteArrayWrapper getMsgHash() {
+        return msgHash;
+    }
+
+    public void setMsgHash(ByteArrayWrapper msgHash) {
+        this.msgHash = msgHash;
+    }
+
+    public Hash256 getTxHash() {
+        return txHash;
+    }
+
+    public void setTxHash(Hash256 txHash) {
+        this.txHash = txHash;
+    }
+
+    public ByteArrayWrapper getTxResult() {
+        return txResult;
+    }
+
+    public void setTxResult(ByteArrayWrapper txResult) {
+        this.txResult = txResult;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public ByteArrayWrapper getTxDeploy() {
+        return txDeploy;
+    }
+
+    public void setTxDeploy(ByteArrayWrapper txDeploy) {
+        this.txDeploy = txDeploy;
+    }
+}
