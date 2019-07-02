@@ -117,7 +117,7 @@ public class Consolidator {
             f.cancel(true);
 
         if (response == null) {
-            Thread.dumpStack();
+            //Thread.dumpStack();
             throw new QuorumNotAvailableException("Could not achieve quorum. total responses received: "
                     + responses.size() + " cancelled requests: " + futures.size() + " quorum: " + quorum);
         }

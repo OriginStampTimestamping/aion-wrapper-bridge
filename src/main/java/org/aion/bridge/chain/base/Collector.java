@@ -114,7 +114,7 @@ public class Collector {
             f.cancel(true);
 
         if (responses.size() < quorum) {
-            Thread.dumpStack();
+            //Thread.dumpStack();
             throw new QuorumNotAvailableException("Could not achieve quorum. total responses received: "
                     + responses.size() + " cancelled requests: " + futures.size() + " quorum: " + quorum);
         }
