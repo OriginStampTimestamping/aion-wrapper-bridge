@@ -36,7 +36,7 @@
         <dependency>
             <groupId>com.github.OriginStampTimestamping</groupId>
             <artifactId>aion_api</artifactId>
-            <version>39aac59bb0</version>
+            <version>04b3e055d4</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
