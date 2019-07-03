@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("Duplicates")
 @ThreadSafe
@@ -44,46 +44,19 @@ public class JsonRpcProvider {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    OkHttpClient client;
-
-    private static final int POOL_MAX_IDLE_CONNECTIONS = 5;
-    private static final long POOL_KEEP_ALIVE_DURATION = 5;
-    private static final TimeUnit POOL_KEEP_ALIVE_DURATION_TIMEUNIT = TimeUnit.MINUTES;
+    private OkHttpClient client;
 
     private static final long TIMEOUT_DEFAULT = 10;
-    private static final TimeUnit TIMEOUT_TIMEUNIT = TimeUnit.SECONDS;
 
     private static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf8");
 
-    public JsonRpcProvider(String url, Long timeoutSeconds) {
-        long _timeout;
-        if (timeoutSeconds == null || timeoutSeconds < 0) {
-            log.error("Set timeout = null or negative. Using default timeout of {}s", TIMEOUT_DEFAULT);
-            _timeout = TIMEOUT_DEFAULT;
-        } else if (timeoutSeconds == 0) {
-            log.warn("WARNING: disabling http timeout by setting httpTimeoutSeconds = 0");
-            _timeout = timeoutSeconds;
-        } else {
-            _timeout = timeoutSeconds;
-        }
-
+    public JsonRpcProvider(String url, Long timeoutSeconds, OkHttpClient okHttpClient) {
         this.url = url;
-        ConnectionPool connectionPool = new ConnectionPool(
-                POOL_MAX_IDLE_CONNECTIONS, POOL_KEEP_ALIVE_DURATION, POOL_KEEP_ALIVE_DURATION_TIMEUNIT);
-
-        // if shouldRetry is causing a problem, fix it here.
-        // https://medium.com/inloopx/okhttp-is-quietly-retrying-requests-is-your-api-ready-19489ef35ace
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.connectionPool(connectionPool);
-        builder.connectTimeout(_timeout, TIMEOUT_TIMEUNIT);
-        builder.readTimeout(_timeout, TIMEOUT_TIMEUNIT);
-        builder.writeTimeout(_timeout, TIMEOUT_TIMEUNIT);
-
-        client = builder.build();
+        client = okHttpClient;
     }
 
-    public JsonRpcProvider(String url) {
-        this(url, TIMEOUT_DEFAULT);
+    public JsonRpcProvider(String url, OkHttpClient okHttpClient) {
+        this(url, TIMEOUT_DEFAULT, okHttpClient);
     }
 
     private ResponseBody makeHttpCall(String jsonPayload) throws IncompleteApiCallException, MalformedApiResponseException {
@@ -111,18 +84,18 @@ public class JsonRpcProvider {
                 try {
                     if (body != null)
                         errBody = body.string();
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                }
 
-                log.error("url=["+url+"] Received non-200 response: code=[{}] body=[{}]", response.code(), errBody);
+                log.error("url=[" + url + "] Received non-200 response: code=[{}] body=[{}]", response.code(), errBody);
                 throw new MalformedApiResponseException(String.format("HTTP invalid response: %d", response.code()));
             }
 
             if (body == null)
-                throw new MalformedApiResponseException("url=["+url+"] HTTP response body is null");
+                throw new MalformedApiResponseException("url=[" + url + "] HTTP response body is null");
 
             return body;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             if (httpCall != null)
                 httpCall.cancel();
 
@@ -136,7 +109,7 @@ public class JsonRpcProvider {
         try {
             payload = mapper.writeValueAsString(call);
         } catch (IOException e) {
-            throw new IllegalArgumentException("url=["+url+"] JsonRpcRequest object not serializable");
+            throw new IllegalArgumentException("url=[" + url + "] JsonRpcRequest object not serializable");
         }
 
         ResponseBody body = makeHttpCall(payload);
@@ -166,7 +139,7 @@ public class JsonRpcProvider {
             payload = mapper.writeValueAsString(call);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new IllegalArgumentException("url=["+url+"] JsonRpcRequest object not serializable");
+            throw new IllegalArgumentException("url=[" + url + "] JsonRpcRequest object not serializable");
         }
 
         log.trace("HTTP Payload: {}", payload);
@@ -177,7 +150,7 @@ public class JsonRpcProvider {
             log.trace("http response: {}", body_string);
             return mapper.readValue(body_string, mapper.getTypeFactory().constructCollectionType(List.class, responseType));
         } catch (Exception e) {
-            log.trace("HTTP body encoding error ",e);
+            log.trace("HTTP body encoding error ", e);
             throw new MalformedApiResponseException(e.getCause());
         }
     }

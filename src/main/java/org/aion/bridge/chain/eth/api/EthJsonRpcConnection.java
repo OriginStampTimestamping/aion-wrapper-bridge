@@ -24,6 +24,7 @@
 
 package org.aion.bridge.chain.eth.api;
 
+import okhttp3.OkHttpClient;
 import org.aion.bridge.chain.aion.rpc.dto.CallContract;
 import org.aion.bridge.chain.base.api.*;
 import org.aion.bridge.chain.base.rpc.JsonRpcError;
@@ -48,12 +49,12 @@ public class EthJsonRpcConnection extends JsonRpcConnectionBase<EthBlock, EthRec
 
     private final Logger log = LoggerFactory.getLogger("RPC_BASE");
 
-    public EthJsonRpcConnection(String connection, Long timeoutSeconds) {
-        super(connection, timeoutSeconds);
+    public EthJsonRpcConnection(String connection, Long timeoutSeconds, OkHttpClient okHttpClient) {
+        super(connection, timeoutSeconds, okHttpClient);
     }
 
-    public EthJsonRpcConnection(String connection) {
-        super(connection);
+    public EthJsonRpcConnection(String connection, OkHttpClient okHttpClient) {
+        super(connection, okHttpClient);
     }
 
     @SuppressWarnings("Duplicates")

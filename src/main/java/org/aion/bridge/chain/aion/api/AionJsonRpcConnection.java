@@ -25,6 +25,7 @@
 package org.aion.bridge.chain.aion.api;
 
 import com.google.common.base.Stopwatch;
+import okhttp3.OkHttpClient;
 import org.aion.bridge.chain.aion.rpc.dto.*;
 import org.aion.bridge.chain.aion.types.*;
 import org.aion.bridge.chain.base.api.*;
@@ -46,12 +47,12 @@ public class AionJsonRpcConnection extends JsonRpcConnectionBase<AionBlock, Aion
 
     private final Logger log = LoggerFactory.getLogger(AionJsonRpcConnection.class);
 
-    public AionJsonRpcConnection(String connection, Long timeoutSeconds) {
-        super(connection, timeoutSeconds);
+    public AionJsonRpcConnection(String connection, Long timeoutSeconds, OkHttpClient okHttpClient) {
+        super(connection, timeoutSeconds, okHttpClient);
     }
 
-    public AionJsonRpcConnection(String connection) {
-        super(connection);
+    public AionJsonRpcConnection(String connection, OkHttpClient okHttpClient) {
+        super(connection, okHttpClient);
     }
 
     @SuppressWarnings("Duplicates")

@@ -25,6 +25,7 @@
 package org.aion.bridge.chain.base.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.OkHttpClient;
 import org.aion.bridge.chain.base.rpc.JsonRpcError;
 import org.aion.bridge.chain.base.rpc.dto.GetBlockByNumber;
 import org.aion.bridge.chain.base.rpc.dto.GetBlockNumber;
@@ -43,13 +44,13 @@ public abstract class JsonRpcConnectionBase<B extends Block, R extends Receipt<L
     protected final JsonRpcProvider provider;
     protected final ObjectMapper mapper;
 
-    public JsonRpcConnectionBase(String connection, Long timeoutSeconds) {
-        provider = new JsonRpcProvider(connection, timeoutSeconds);
+    public JsonRpcConnectionBase(String connection, Long timeoutSeconds, OkHttpClient okHttpClient) {
+        provider = new JsonRpcProvider(connection, timeoutSeconds, okHttpClient);
         mapper = new ObjectMapper();
     }
 
-    public JsonRpcConnectionBase(String connection) {
-        provider = new JsonRpcProvider(connection);
+    public JsonRpcConnectionBase(String connection, OkHttpClient okHttpClient) {
+        provider = new JsonRpcProvider(connection, okHttpClient);
         mapper = new ObjectMapper();
     }
 
