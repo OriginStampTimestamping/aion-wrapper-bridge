@@ -35,100 +35,92 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ConsolidatedChainConnection<B extends Block, R extends Receipt<L>, L extends Log, A extends Address> implements StatelessChainConnection<B, R, L, A> {
 
     private final Logger log = LoggerFactory.getLogger(ConsolidatedChainConnection.class);
     private final List<StatelessChainConnection<B, R, L, A>> connections;
-    private final Executor executor;
-
-    private final int quorum;
     private final long timeout;
 
     private final static TimeUnit TIMEOUT_UNIT = TimeUnit.MILLISECONDS;
     private final static long DEFAULT_TIMEOUT = 10_000L; // 10s
 
-    public ConsolidatedChainConnection(List<StatelessChainConnection<B, R, L, A>> connections, int quorum, ThreadPoolExecutor executor) {
-        this(connections, quorum, Duration.ofMillis(DEFAULT_TIMEOUT), executor);
+    public ConsolidatedChainConnection(List<StatelessChainConnection<B, R, L, A>> connections) {
+        this(connections, Duration.ofMillis(DEFAULT_TIMEOUT));
     }
 
-    public ConsolidatedChainConnection(List<StatelessChainConnection<B, R, L, A>> connections, int quorum, Duration timeout, Executor executor) {
+    public ConsolidatedChainConnection(List<StatelessChainConnection<B, R, L, A>> connections, Duration timeout) {
         Objects.requireNonNull(connections);
         Objects.requireNonNull(timeout);
         if (connections.size() < 1) throw new IllegalArgumentException("connections.size() < 1");
-        if (quorum < 1) throw new IllegalArgumentException("quorum < 1");
         if (timeout.isNegative()) throw new IllegalArgumentException("timeout < 0");
         if (timeout.isZero()) {
             log.warn("ConsolidatedChainConnection: disabling timeout be setting timeout = 0");
         }
 
         this.timeout = timeout.toMillis();
-        this.quorum = quorum;
         this.connections = Collections.unmodifiableList(connections);
-        this.executor = executor;
     }
 
     private <T> T batchCall(ApiFunction<StatelessChainConnection<B, R, L, A>, T> method)
-            throws QuorumNotAvailableException, InterruptedException {
-        return Consolidator.batchCall(method, connections, executor, quorum, timeout, TIMEOUT_UNIT);
+            throws QuorumNotAvailableException {
+        return Consolidator.batchCall(method, connections, timeout, TIMEOUT_UNIT);
     }
 
     @Override
     public BigInteger getBlockNumber()
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         //noinspection Convert2MethodRef
         return batchCall(StatelessChainConnectionBase::getBlockNumber);
     }
 
     @Override
     public Optional<B> getBlock(long blockNumber)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.getBlock(blockNumber));
     }
 
     @Override
     public Optional<R> getReceipt(Word32 transactionHash)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.getReceipt(transactionHash));
     }
 
     @Override
     public List<B> getBlocksRangeClosed(long start, long end)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.getBlocksRangeClosed(start, end));
     }
 
     @Override
     public List<BlockWithReceipts<B, R, L>> getReceiptsForBlocks(List<B> blocks)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.getReceiptsForBlocks(blocks));
     }
 
     @Override
     public BigInteger getNonce(A address)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.getNonce(address));
     }
 
     @Override
     public Word32 sendRawTransaction(ImmutableBytes rawTransaction)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.sendRawTransaction(rawTransaction));
     }
 
     @Override
     public BigInteger getGasPrice()
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         //noinspection Convert2MethodRef
         return batchCall(c -> c.getGasPrice());
     }
 
     @Override
     public BigInteger getBalance(A address, String blockId)
-            throws  QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.getBalance(address, blockId));
     }
 
@@ -139,20 +131,20 @@ public class ConsolidatedChainConnection<B extends Block, R extends Receipt<L>, 
 
     @Override
     public String contractCall(A address, ImmutableBytes abi, String blockId)
-            throws QuorumNotAvailableException, InterruptedException {
+            throws QuorumNotAvailableException {
         return batchCall(c -> c.contractCall(address, abi, blockId));
     }
 
     @Override
-    public String contractCall(A address, ImmutableBytes abi) throws QuorumNotAvailableException, InterruptedException {
+    public String contractCall(A address, ImmutableBytes abi) throws QuorumNotAvailableException {
         return contractCall(address, abi, "latest");
     }
 
 
     @Override
     public void evictConnections() {
-       for(StatelessChainConnection c: connections){
-           c.evictConnections();
-       }
+        for (StatelessChainConnection c : connections) {
+            c.evictConnections();
+        }
     }
 }

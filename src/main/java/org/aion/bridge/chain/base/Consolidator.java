@@ -31,95 +31,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InterruptedIOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 public class Consolidator {
     private static final Logger log = LoggerFactory.getLogger(Consolidator.class);
 
-    private static <T> T getConsolidatedResponse(Map<T, Integer> responses, int quorum) {
-        for (T key : responses.keySet()) {
-            if (responses.get(key) >= quorum) {
-                return key;
-            }
-        }
-        return null;
-    }
-
     // Consolidates calls into a single response
-    public static <T, I> T batchCall(ApiFunction<I, T> method, List<I> inputs, Executor executor,
-                                     int quorum, long timeout, TimeUnit timeoutUnit)
-            throws QuorumNotAvailableException, InterruptedException {
-        CompletionService<T> cs = new ExecutorCompletionService<T>(executor);
-        Set<Future<T>> futures = new HashSet<Future<T>>();
-
-        //noinspection Duplicates
-        for (I input : inputs) {
-            futures.add(cs.submit(() -> {
-                try {
-                    return method.apply(input);
-                } catch (Exception e) {
-                    if (!(e.getCause() instanceof InterruptedIOException)) {
-                        log.trace("Consolidator encountered non-critical exception; Exception Message: {}", e.getCause());
-                    }
-                }
-                return null;
-            }));
-        }
-
-        Map<T, Integer> responses = new HashMap<>();
-        Stopwatch timer = Stopwatch.createStarted();
-
+    public static <T, I> T batchCall(ApiFunction<I, T> method, List<I> inputs,
+                                     long timeout, TimeUnit timeoutUnit)
+            throws QuorumNotAvailableException {
         T response = null;
-        Future<T> future;
-        T i;
-
-        boolean timeoutEnabled = true;
-        if (timeout <= 0)
-            timeoutEnabled = false;
-
-        while (!Thread.currentThread().isInterrupted()) {
-            if (futures.size() == 0) break;
-            if (timeoutEnabled && timer.elapsed(timeoutUnit) > timeout) break;
-
-            if (timeoutEnabled)
-                future = cs.poll(timeout, timeoutUnit);
-            else
-                future = cs.take();
-
-            if (future == null)  // exceeded timeout
+        Stopwatch timer = Stopwatch.createStarted();
+        for (I input : inputs) {
+            if (timer.elapsed(timeoutUnit) > timeout) {
                 break;
-
-            futures.remove(future);
-            try {
-                i = future.get();
-                if (i != null) {
-                    if (responses.containsKey(i)) {
-                        responses.put(i, responses.get(i) + 1);
-                    } else {
-                        responses.put(i, 1);
-                    }
-                }
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                continue; // ok so this response was bad, try the other ones
             }
-
-            // now check if we've gotten a consolidated response. if not, keep looking
-            response = getConsolidatedResponse(responses, quorum);
-            if (response != null) break;
-            else //noinspection UnnecessaryContinue
-                continue;
+            try {
+                response = method.apply(input);
+                break;
+            } catch (Exception e) {
+                if (!(e.getCause() instanceof InterruptedIOException)) {
+                    log.trace("Consolidator encountered non-critical exception; Exception Message: {}", e.getCause());
+                }
+            }
         }
 
-        // at this point, OK to cancel any outstanding futures
-        for (Future<T> f : futures)
-            f.cancel(true);
 
         if (response == null) {
-            //Thread.dumpStack();
-            throw new QuorumNotAvailableException("Could not achieve quorum. total responses received: "
-                    + responses.size() + " cancelled requests: " + futures.size() + " quorum: " + quorum);
+            throw new QuorumNotAvailableException("Could not achieve quorum.");
         }
 
         return response;

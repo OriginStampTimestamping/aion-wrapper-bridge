@@ -38,12 +38,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class EthJsonRpcConsolidator {
     private ConsolidatedChainConnection<EthBlock, EthReceipt, EthLog, EthAddress> api;
 
-    public EthJsonRpcConsolidator(List<StatelessChainConnection<EthBlock, EthReceipt, EthLog, EthAddress>> connections, int quorumSize, ThreadPoolExecutor executor) {
-        api = new ConsolidatedChainConnection<>(connections, quorumSize, executor);
+    public EthJsonRpcConsolidator(List<StatelessChainConnection<EthBlock, EthReceipt, EthLog, EthAddress>> connections) {
+        api = new ConsolidatedChainConnection<>(connections);
     }
 
-    public EthJsonRpcConsolidator(List<StatelessChainConnection<EthBlock, EthReceipt, EthLog, EthAddress>> connections, int quorumSize, Duration timeout, ThreadPoolExecutor executor) {
-        api = new ConsolidatedChainConnection<>(connections, quorumSize, timeout, executor);
+    public EthJsonRpcConsolidator(List<StatelessChainConnection<EthBlock, EthReceipt, EthLog, EthAddress>> connections, Duration timeout) {
+        api = new ConsolidatedChainConnection<>(connections, timeout);
     }
 
     public ConsolidatedChainConnection<EthBlock, EthReceipt, EthLog, EthAddress> getApi() {

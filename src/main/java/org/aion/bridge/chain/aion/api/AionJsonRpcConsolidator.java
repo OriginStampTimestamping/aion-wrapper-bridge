@@ -32,19 +32,17 @@ import org.aion.bridge.chain.base.api.ConsolidatedChainConnection;
 import org.aion.bridge.chain.base.api.StatelessChainConnection;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class AionJsonRpcConsolidator {
     private ConsolidatedChainConnection<AionBlock, AionReceipt, AionLog, AionAddress> api;
 
-    public AionJsonRpcConsolidator(List<StatelessChainConnection<AionBlock, AionReceipt, AionLog, AionAddress>> connections, int quorumSize, ThreadPoolExecutor executor) {
-        api = new ConsolidatedChainConnection<>(connections, quorumSize, executor);
+    public AionJsonRpcConsolidator(List<StatelessChainConnection<AionBlock, AionReceipt, AionLog, AionAddress>> connections) {
+        api = new ConsolidatedChainConnection<>(connections);
     }
 
-    public AionJsonRpcConsolidator(List<StatelessChainConnection<AionBlock, AionReceipt, AionLog, AionAddress>> connections, int quorumSize, Duration timeout, ThreadPoolExecutor executor) {
-        api = new ConsolidatedChainConnection<>(connections, quorumSize, timeout, executor);
+    public AionJsonRpcConsolidator(List<StatelessChainConnection<AionBlock, AionReceipt, AionLog, AionAddress>> connections, Duration timeout) {
+        api = new ConsolidatedChainConnection<>(connections, timeout);
     }
 
     public ConsolidatedChainConnection<AionBlock, AionReceipt, AionLog, AionAddress> getApi() {
