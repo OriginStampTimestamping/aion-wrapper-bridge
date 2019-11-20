@@ -44,7 +44,7 @@ public abstract class JsonRpcRequest {
     public JsonRpcRequest(String method) {
         Objects.requireNonNull(method);
         this.method = method;
-        this.id = 0;
+        this.id = 1;
     }
 
     public JsonRpcRequest(String method, int id) {
