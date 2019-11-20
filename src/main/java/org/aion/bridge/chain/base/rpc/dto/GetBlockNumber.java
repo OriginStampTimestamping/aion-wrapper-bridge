@@ -58,7 +58,11 @@ public class GetBlockNumber {
 
         @JsonIgnore
         public BigInteger getNumber() {
-            return new BigInteger(1, ByteUtils.hexToBin(result));
+            if (result.startsWith("0x")) {
+                return new BigInteger(1, ByteUtils.hexToBin(result));
+            } else {
+                return BigInteger.valueOf(Long.parseLong(result));
+            }
         }
     }
 }
