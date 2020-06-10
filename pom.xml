@@ -136,11 +136,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>githubrepository</id>
-            <url>https://github.com/OriginStampTimestamping/aion-wrapper-bridge/raw/master/maven_repo</url>
-        </repository>
-    </repositories>
 </project>

@@ -1,0 +1,64 @@
+# This workflow will build a package using Maven and then publish it to GitHub packages when a release is created
+# For more information see: https://github.com/actions/setup-java#apache-maven-with-a-settings-path
+
+name: Maven Build and Deploy
+
+# Trigger conditions (build only on pull_request for features and for a release)
+on:
+  release:
+    types:
+      - published
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 1.8 and GitHub Packages Repo
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+          server-id: com.originstamp # Value of the distributionManagement/repository/id field of the pom.xml
+          settings-path: ${{ github.workspace }} # location for the settings.xml file
+
+      # Print some context variables for debugging (if something goes wrong).
+      - name: Check GitHub context
+        run: |
+          echo github branch name: ${GITHUB_REF##*/}
+          echo github source branch name: ${GITHUB_HEAD_REF##*/}
+          echo github.run_id: ${{ github.run_id }}
+          echo github.run_number: ${{ github.run_number }}
+
+      # Utilize the caching function of GitHub
+      - name: Maven Cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Set a new version depending on source branch and build number (can't overwrite existing versions)
+      - name: Update Maven version (pull request)
+        if: github.event_name == 'pull_request'
+        run: mvn versions:set -DnewVersion=${GITHUB_HEAD_REF##*/}.${{ github.run_number }}
+
+      # Set a new version depending on tag name (can only set a version once!)
+      - name: Update Maven version (release)
+        if: github.event_name == 'release'
+        run: mvn versions:set -DnewVersion=${GITHUB_REF##*/}
+
+      # Built it!
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      # Deploy / Publish to GitHub packages via Apache Maven
+      - name: Deploy to GitHub Packages
+        run: mvn -e -Dmaven.wagon.http.pool=false deploy -s $GITHUB_WORKSPACE/settings.xml
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
