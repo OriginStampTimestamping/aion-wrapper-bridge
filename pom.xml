@@ -27,12 +27,18 @@
 
     <repositories>
         <repository>
-            <id>local-repo</id>
-            <name>AION libs</name>
-            <url>file:///${basedir}/maven_repo/</url>
-            <layout>default</layout>
+            <id>githubrepository</id>
+            <url>https://github.com/OriginStampTimestamping/aion-wrapper-bridge/raw/master/maven_repo</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <!-- Used as deployment repository in GitHub -->
+        <repository>
+            <id>com.originstamp</id>
+            <url>https://maven.pkg.github.com/OriginStampTimestamping/aion-wrapper-bridge</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
